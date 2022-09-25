@@ -1,71 +1,78 @@
-import React, { useState} from "react";
-import {StyleSheet, View, Button, TextInput,
-} from "react-native";
-import MapView, { Marker } from "react-native-maps";
+
+import {useState } from 'react';
+import { Alert, Button, StyleSheet, TextInput, View } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 
 
 export default function App() {
-  const start = {
-    latitude: 60.200692,
-    longitude: 24.934302,
-    latitudeDelta: 0.0322,
-    longitudeDelta: 0.0221,
-  };
-  const [region, setRegion] = useState(start);
+
   const [address, setAddress] = useState("");
+  const [location, setLocation] = useState({ latitude: 60.200692, longitude: 24.934302, latitudeDelta: 0.0322, longitudeDelta: 0.0221 });
+
   
 
-  const showCoordinates = async (location) => {
-    
-    const URL = `http://www.mapquestapi.com/geocoding/v1/address?key=FBdRiKKHrEdW5pa20tORCDewx4ZL5iI2&location=${location}, FINLAND`;
-    try {
-      const response = await fetch(URL);
-      const data = await response.json();
-      const lat = data.results[0].locations[0].latLng.lat;
-      const lng = data.results[0].locations[0].latLng.lng;
-      setRegion({ ...region, latitude: lat, longitude: lng });
-    } catch (error) {
+  const showLocation = () => {
+    const URL = `http://www.mapquestapi.com/geocoding/v1/address?key=FBdRiKKHrEdW5pa20tORCDewx4ZL5iI2&location=${address}, FINLAND`
+    fetch(URL)
+    .then(response => response.json())
+    .then(data => {
+      const location = {
+        latitude: data.results[0].locations[0].latLng.lat,
+        longitude: data.results[0].locations[0].latLng.lng,
+        latitudeDelta: 0.0322,
+        longitudeDelta: 0.0221
+      }
+      setLocation(location)
+    })
+    .catch(error => {
       Alert.alert("Error fetching coordinates");
-    }
-    
+    });
   };
-
+  
   return (
     <View style={styles.container}>
-      <MapView style={styles.map} region={region}>
-        <Marker coordinate={region} />
+      <MapView style={styles.map}
+        region={location}
+      >
+        <Marker 
+          coordinate={location}
+          
+        />
       </MapView>
-      <View />
 
-      <TextInput
+      <TextInput 
         style={styles.texts}
+        onChangeText={address => setAddress(address)}
         value={address}
-        onChangeText={(text) => setAddress(text)}
       />
-      <Button title="Search" onPress={() => showCoordinates(address)} />
-      <View/>
-      <View/>
+        
+      <View style={styles.button}>
+        <Button title="Search" onPress={showLocation}/>
+      </View>
+      
+      
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  texts: {
+    width: 250,  
+    borderWidth: 1,
+    
   },
   map: {
     flex: 1,
     width: "100%",
-    height: "100%",
+    height: "100%"
   },
-  
-  texts: { 
-    fontSize: 18,
-    width: 200, 
-    borderWidth: 1, 
-    padding: 5 }
+  button: {
+    padding: 5
+  }
 });
-
